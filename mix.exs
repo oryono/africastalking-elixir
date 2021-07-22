@@ -21,7 +21,7 @@ defmodule AfricastalkingElixir.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.8"},
+      {:hackney, "~> 1.17"},
       {:jason, "~> 1.2"}
     ]
   end
