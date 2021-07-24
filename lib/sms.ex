@@ -1,8 +1,10 @@
 defmodule AfricastalkingElixir.SMS do
-  @endpoint Application.get_env(
+  @base_url Application.get_env(
               :africastalking_elixir,
-              :endpoint
-            ) || "https://api.sandbox.africastalking.com/version1/messaging"
+              :base_url
+            ) || "https://api.sandbox.africastalking.com"
+
+  @endpoint "#{@base_url}/version1/messaging"
 
   @config %{
     username: Application.get_env(:africastalking_elixir, :username),
