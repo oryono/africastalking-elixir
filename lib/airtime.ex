@@ -12,16 +12,18 @@ defmodule AfricastalkingElixir.Airtime do
   }
 
 
-  def send(recipients) do
-    body = Enum.map(
-             recipients,
-             fn recipient ->
-               %{phoneNumber: recipient.phone_number, amount: "#{recipient.currency_code} #{recipient.amount}"}
-             end
-           )
-           |> build_body
-
-    with :ok <- validate_numbers(recipients), :ok <- validate_currencies(recipients) do
+  def send(recipients) when is_list(recipients) do
+    with :ok <- validate_required_keys(recipients),
+         :ok <- validate_numbers(recipients),
+         :ok <- validate_currencies(recipients)
+      do
+      body = Enum.map(
+               recipients,
+               fn recipient ->
+                 %{phoneNumber: recipient.phone_number, amount: "#{recipient.currency_code} #{recipient.amount}"}
+               end
+             )
+             |> build_body
       case :hackney.request(:post, @endpoint, headers(@config.api_key), URI.encode_query(body)) do
         {:ok, status, _, ref} when status in 400..599 ->
           {:ok, body} = :hackney.body(ref)
@@ -79,7 +81,16 @@ defmodule AfricastalkingElixir.Airtime do
     end
   end
 
-  def valid_currency?(currency) do
+  defp valid_currency?(currency) do
     if String.length(currency) !== 3 || currency !== String.upcase(currency), do: false, else: true
+  end
+
+  defp validate_required_keys(recipients) do
+    required_keys = ~w"phone_number amount currency_code"a
+    if Enum.all?(recipients, &Enum.all?(required_keys, fn k -> Map.has_key?(&1, k) end)) do
+      :ok
+    else
+      {:error, "Phone number, currency code and amount must be specified for each recipient"}
+    end
   end
 end
